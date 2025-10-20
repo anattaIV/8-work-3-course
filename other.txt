@@ -1,0 +1,135 @@
+ENUM
+- Аналогия: Enum — как меню в ресторане: вместо случайных номеров блюд (0, 1, 2) вы имеете ясные названия ("Салат", "Стейк"), и повар (runtime) знает, что готовить
+Например:
+enum Direction {
+  Up,    // Автоматически 0
+  Down,  // 1
+  Left,  // 2
+  Right  // 3
+}
+
+console.log(Direction.Up);     // ✅ 0
+console.log(Direction[0]);     // ✅ "Up" -- обратное отображение (reverse mapping)
+console.log(Direction.Down);   // ✅ 1
+
+// Использование в функции
+function move(dir: Direction): void {
+  switch (dir) {
+    case Direction.Up:
+      console.log("Движение вверх");
+      break;
+    case Direction.Down:
+      console.log("Движение вниз");
+      break;
+  }
+}
+
+
+move(Direction.Up); // ✅ "Движение вверх"
+move(1 as Direction); // ✅ "Движение вниз" (число 1 соответствует Down)
+move("Up" as Direction); // ❌ Ошибка: строка не совместима с Direction
+Объяснение: 
+   Direction.Up — это константа с значением 0.
+   Обратное отображение (Direction[0] === "Up") работает только для числовых enum, что полезно для отладки: вы можете получить имя по номеру.
+   Enum компилируется в объект: { Up: 0, Down: 1, Left: 2, Right: 3 }.
+Совет: Используйте числовые enum, когда нужно экономить место в runtime (числа компактнее строк) или когда значения приходят из внешнего API как числа.
+- Явные значения и смешанные enum
+Вы можете задавать значения вручную, но смешанные (строка + число) enum не рекомендуются — они усложняют код.
+Пример:
+enum HttpCode {
+  OK = 200,
+  BadRequest = 400,
+  NotFound = 404
+}
+
+console.log(HttpCode.OK); // ✅ 200
+
+// Смешанный (не рекомендуется)
+enum Mixed {
+  A = "alpha",  // Строка
+  B = 2,        // Число
+  C             // Авто: 3 (число)
+}
+
+console.log(Mixed.A); // ✅ "alpha"
+console.log(Mixed.B); // ✅ 2
+// console.log(Mixed["alpha"]); // ❌ undefined -- нет reverse mapping для строк
+Объяснение:
+   В HttpCode значения заданы явно, что идеально для HTTP-статусов.
+   Смешанные enum работают, но reverse mapping неполный, и код становится менее предсказуемым.
+Аналогия: Явные значения — как пронумерованные полки: вы точно знаете, что на полке №200 лежит "OK".
+Совет: Избегайте смешанных enum — выбирайте либо все числа, либо все строки.
+- Строковые enum: для читаемости
+Строковые enum используют строки вместо чисел, что делает их более понятными в логах.
+Пример:
+enum Color {
+  Red = "RED",
+  Green = "GREEN",
+  Blue = "BLUE"
+}
+
+console.log(Color.Red); // ✅ "RED"
+console.log(Color["RED"]); // ❌ undefined -- нет reverse mapping
+
+// Использование
+function setColor(c: Color): void {
+  console.log(`Цвет: ${c}`);
+}
+
+setColor(Color.Green); // ✅ "Цвет: GREEN"
+setColor("RED" as Color); // ✅ "Цвет: RED"
+setColor("YELLOW" as Color); // ❌ Ошибка: "YELLOW" не входит в Color
+Объяснение:
+   Строки задаются явно, без автоинкремента.
+   Нет reverse mapping, но это не проблема, если вы не нуждаетесь в нём.
+Совет: Предпочитайте строковые enum для API, где значения — строки (например, JSON-ответы).
+- const enum: оптимизация для runtime
+const enum компилируется в литералы, не создавая объект в JS.
+Пример:
+const enum Role {
+  Admin = 0,
+  User = 1,
+  Guest = 2
+}
+
+const userRole: Role = Role.Admin; // В JS: const userRole = 0; (вставка литерала)
+
+function checkAccess(role: Role): boolean {
+  return role === Role.Admin;
+}
+Объяснение:
+   В скомпилированном JS нет объекта Role — значения вставляются напрямую, что уменьшает размер бандла.
+   Требует поддержки в tsconfig (опция preserveConstEnums: false по умолчанию).
+Аналогия: const enum — как шаблон: вы используете его для вырезания фигур, но сам шаблон не попадает в готовое изделие.
+- Когда использовать enum, а когда union-тип
+Enum — для runtime-объектов, union — для чисто типовых ограничений.
+Пример union:
+type Direction = "up" | "down" | "left" | "right";
+
+function move(dir: Direction): void {
+  console.log(`Движение: ${dir}`);
+}
+
+move("up"); // ✅
+move("forward"); // ❌ Ошибка
+Объяснение:
+   Union исчезает в JS (нет runtime-объекта), enum остаётся.
+   Union проще для литералов и не создаёт overhead.
+Аналогия: Enum — как физический список в блокноте (runtime), union — как мысленный список (compile-time).
+Лучшие практики:
+Enum для runtime (логи, API).
+Union для простых ограничений.
+Избегайте гетерогенных enum.
+
+GENERIC
+- Generics позволяют создавать компоненты, работающие с разными типами, сохраняя типобезопасность. Это ключ к созданию библиотек вроде Array<T> или Promise<T>.
+Аналогия: Generics — как шаблон для одежды: один выкройка (тип T), но подходит для разных размеров (string, number).
+- Базовый синтаксис generic-функций
+Пример:
+function identity<T>(arg: T): T {
+  return arg;
+}
+
+const strResult = identity<string>("hello"); // ✅ string
+const numResult = identity(123); // ✅ number (T inferred)
+
