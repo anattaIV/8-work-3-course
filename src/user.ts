@@ -1,8 +1,8 @@
 //1task
-export default class User {
-  constructor(public name: string) {}
+export default class User { //Class - это способ описать шаблон для создания объектов (экземпляров). Класс — как чертёж.
+  constructor(public name: string) {}//constructor - это специальный метод внутри класса, который автоматически вызывается, когда создаётся новый объект этого класса. public - модификатор доступа. Он говорит, что свойство name будет доступно снаружи
 
   greet(): string {
-    return `Привет, меня зовут ${this.name}`;
+    return `Привет, меня зовут ${this.name}`; //this - как бы говорит, возьми name именно у этого объекта
   }
 }

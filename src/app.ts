@@ -11,6 +11,6 @@ import { APP_NAME as appName, VERSION as ver } from "./constants";
 
 console.log(`${appName} ${ver}`);
 //3task !!!!! не установлен lodash
-import { uppercased } from "./data";
+import { uppercase } from "./data";
 
-console.log(uppercased);
+console.log(uppercase);
